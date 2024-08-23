@@ -1,0 +1,11 @@
+[project]
+name = "lightningdb"
+version = "0.1.0"
+dependencies = ["pydantic", "rq", "redis", "boto3"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.optional-dependencies]
+dev = ["pytest"]
