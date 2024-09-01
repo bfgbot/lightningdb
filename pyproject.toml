@@ -1,7 +1,7 @@
 [project]
 name = "lightningdb"
 version = "0.1.0"
-dependencies = ["pydantic", "rq", "redis", "boto3", "rich", "fastavro"]
+dependencies = ["pydantic", "rq", "redis", "boto3", "rich", "fastavro", "zstandard"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
