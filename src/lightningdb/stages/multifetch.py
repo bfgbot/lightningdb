@@ -40,11 +40,13 @@ class MultiFetch(BaseModel):
         for input_files in input_pfiles:
             job = Job.create(
                 subprocess.check_output,
-                args=[[
-                    "/tmp/superfetch",  # the superfetch command is hardcoded
-                    output_dir,
-                    *input_files,
-                ]],
+                args=[
+                    [
+                        "/tmp/superfetch",  # the superfetch command is hardcoded
+                        output_dir,
+                        *input_files,
+                    ]
+                ],
                 kwargs={"text": True},
                 result_ttl="1d",
                 timeout="5d",

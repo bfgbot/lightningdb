@@ -4,24 +4,25 @@ from rich.progress import Progress
 
 from lightningdb.df import LightningCtx
 from lightningdb.pipeline_stage import PipelineStage
+from lightningdb.stages.fetch import Fetch
+from lightningdb.stages.multifetch import MultiFetch
 
 
 def has_part(ctx: LightningCtx, dfname: str, part: int) -> bool:
     return ctx.get_files(ctx, dfname, part) is not None
 
 
-def run_pipeline(
-    ctx: LightningCtx, name: str, pipeline: list[PipelineStage], memorize: bool = True
-):
+def run_pipeline(ctx: LightningCtx, name: str, pipeline: list[PipelineStage]):
     nparts = 1
     prev_df = None
     cur_df = None
 
     with Progress() as progress:
         for i, stage in enumerate(pipeline):
+            # MultiFetch and Fetch stages are IO-intensive and can be skipped
+            memorize = isinstance(stage, MultiFetch) or isinstance(stage, Fetch)
+
             cur_df = f"{name}@{i}"
-            if memorize and has_part(ctx, cur_df, 0):
-                continue
             output_dir = os.path.join(ctx.repodir, cur_df)
             if hasattr(stage, "runall"):
                 task_id = progress.add_task(
@@ -45,6 +46,10 @@ def run_pipeline(
                 )
 
                 for part in range(nparts):
+                    if memorize and has_part(ctx, cur_df, part):
+                        progress.update(task_id, advance=1)
+                        continue
+
                     input_files = [
                         os.path.join(ctx.repodir, prev_df, file)
                         for file in ctx.get_files(prev_df, part)

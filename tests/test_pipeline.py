@@ -21,7 +21,7 @@ def test_pipeline():
     if os.path.exists(dbname):
         os.remove(dbname)
     ctx = LightningCtx(dbname, "/tmp/")
-    run_pipeline(ctx, "test", pipeline, memorize=False)
+    run_pipeline(ctx, "test", pipeline)
     db = sqlite3.connect(dbname)
     cur = db.execute("select count(*) from df where name='test@1'")
     (result,) = cur.fetchone()
