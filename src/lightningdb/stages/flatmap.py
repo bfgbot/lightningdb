@@ -1,9 +1,12 @@
 from typing import Any, Callable
+from itertools import chain
 
 from pydantic import BaseModel
 
 from lightningdb.rw.read_df import iterrows
 from lightningdb.rw.write_df import WriteDF
+
+import multiprocessing
 
 
 # FlatMap class applies a function to each input row, potentially producing multiple output rows.
@@ -18,8 +21,14 @@ class FlatMap(BaseModel):
 
     def run(self, input_files: list[str], output_dir: str) -> list[str]:
         writer = WriteDF(output_dir, self.avro_schema)
-        for row in iterrows(input_files):
-            for row in self.fn(row):
-                writer.append(row)
+        # Apply the function to each input row using multiprocessing
+        # This allows for parallel processing of input rows, potentially
+        # improving performance for CPU-bound operations
+        with multiprocessing.Pool() as pool:
+            for results in pool.imap_unordered(
+                self.fn, iterrows(input_files), chunksize=100
+            ):
+                for result in results:
+                    writer.append(result)
         writer.close()
         return writer.files
