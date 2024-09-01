@@ -33,7 +33,7 @@ class LightningCtx:
         self.db = sqlite3.connect(dbname)
         self.db.executescript(schema)
         self.repodir = repodir
-        if not self.repodir.endswith("s3://"):
+        if not self.repodir.startswith("s3://"):
             os.makedirs(self.repodir, exist_ok=True)
 
     def new_df(self, name: str, part: int, files: list[str]) -> None:
