@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from pydantic import BaseModel
@@ -10,7 +11,8 @@ from rq.worker import Worker, WorkerStatus
 
 class RQContext:
     def __init__(self):
-        self.redis = Redis()
+        redis_url = os.environ.get("REDIS_URL")
+        self.redis = Redis.from_url(redis_url) if redis_url else Redis()
         self.queue = Queue(connection=self.redis, name="superfetch")
 
     # Send commands to all workers to abort their jobs
@@ -38,13 +40,11 @@ class MultiFetch(BaseModel):
         for input_files in input_pfiles:
             job = Job.create(
                 subprocess.check_output,
-                args=[
-                    [
-                        "/tmp/superfetch",  # the superfetch command is hardcoded
-                        output_dir,
-                        *input_files,
-                    ]
-                ],
+                args=[[
+                    "/tmp/superfetch",  # the superfetch command is hardcoded
+                    output_dir,
+                    *input_files,
+                ]],
                 kwargs={"text": True},
                 result_ttl="1d",
                 timeout="5d",
